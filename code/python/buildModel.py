@@ -13,35 +13,31 @@ def main():
     outputSize = 1;
     layerSizes = [512, 512, outputSize]
 
-    inputsHolder = tf.placeholder(tf.float32, shape=[1, inputSize], name="inputs");
-    labelsHolder = tf.placeholder(tf.float32, shape=[1, outputSize], name="labels");
+    inputsHolder = tf.placeholder(tf.float32, shape=[None, inputSize], name="inputs");
+    labelsHolder = tf.placeholder(tf.float32, shape=[None, outputSize], name="labels");
 
     #hidden0
     inputSize0 = 2;
     outputSize0 = 10;
     ws0 = tf.Variable(tf.random_normal([inputSize0, outputSize0]), name="ws0");
-    bs0 = tf.Variable(tf.random_normal([1, outputSize0]), name="bs0");
+    bs0 = tf.Variable(tf.random_normal([outputSize0]), name="bs0");
     outH0 = tf.nn.sigmoid(tf.add(tf.matmul(inputsHolder, ws0), bs0));
 
     #hidden1
     inputSize1 = outputSize0;
     outputSize1 = 1;
     ws1 = tf.Variable(tf.random_normal([inputSize1, outputSize1]), name="ws1");
-    bs1 = tf.Variable(tf.random_normal([1, outputSize1]), name="bs1");
+    bs1 = tf.Variable(tf.random_normal([outputSize1]), name="bs1");
     prediction = tf.nn.sigmoid(tf.add(tf.matmul(outH0, ws1), bs1));
 
     loss = tf.reduce_mean(tf.squared_difference(prediction, labelsHolder));
-    optimizer = tf.train.GradientDescentOptimizer(.1).minimize(loss);
+    optimizer = tf.train.GradientDescentOptimizer(.01).minimize(loss);
 
     with tf.Session() as sess:
-        writer = tf.summary.FileWriter("./logs/xor_logs", sess.graph_def)
         sess.run(tf.global_variables_initializer())
         for e in range(100000):
-            v = .0;
-            for pos in range(4):
-                _, c = sess.run([optimizer, loss], feed_dict={inputsHolder: [xs[pos]], labelsHolder: [ys[pos]]});
-                v += c;
-            print("Epoch:", e, "Ac: ", (1 - (v/ 4.0)) * 100, end='\r');
+            _, c = sess.run([optimizer, loss], feed_dict={inputsHolder: xs, labelsHolder:ys});
+            print("Epoch:", e, "Ac: ", c, end='\r');
 
 
 
